@@ -1,0 +1,3 @@
+%{
+  "epmdless": {:hex, :epmdless, "0.3.0", "14c5d965a01524655fcd07c8046bd49b6bb86f71c467a8f08f36ebad644a61f8", [:rebar3], [], "hexpm", "f62df8f3930d682a09a86f07db9b92056753d8c105827302d4a561a029e29da4"},
+}
