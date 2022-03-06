@@ -1,10 +1,57 @@
+
 # ---------------------------------------------------------
 # 准备干净的最小化运行环境
 # 安装了 tzdata 时区数据， bash, openssl支持 curl telnet
 # 并把运行时区设置为 上海
-FROM registry2.leangoo.com:4443/library/alpine_base:3.14.2 as app_base
+FROM alpine:3.15.0 as app_base
 
-FROM registry2.leangoo.com:4443/library/elixir_base:1.13.3-alpine as app_builder
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+
+RUN apk upgrade \
+ && apk update \
+ && apk add ncurses-libs \
+        tzdata \
+        bash \
+        openssl \
+        curl \
+        busybox-extras \
+        libstdc++ \
+ && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+ && echo "Asia/Shanghai" > /etc/timezone
+
+# 默认shell改为bash
+RUN sed -i -e "s/bin\/ash/bin\/bash/" /etc/passwd
+
+
+# 准备elixir构建环境
+FROM elixir:1.13.3-alpine as app_builder
+
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+
+RUN apk upgrade \
+ && apk update \
+ && apk add --upgrade apk-tools \
+ && apk upgrade \
+ && apk update \
+ && apk add \
+   git \
+   build-base \
+   alpine-sdk \
+   coreutils \
+   curl \
+   openssh \
+   tzdata \
+   rsync \
+ && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+ && echo "Asia/Shanghai" > /etc/timezone
+
+# 默认shell改为bash
+RUN sed -i -e "s/bin\/ash/bin\/bash/" /etc/passwd
+
+# 准备erlang包管理工具
+RUN mix local.hex --force \
+ && mix local.rebar --force
+
 
 ARG MIX_ENV
 ENV MIX_ENV=${MIX_ENV:-"prod"}
